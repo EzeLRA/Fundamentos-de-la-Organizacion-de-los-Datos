@@ -35,6 +35,8 @@ begin
 	close(fich);
 end;
 //1
+// corregir algoritmo con el siguiente link de la práctica 
+// https://github.com/valentinoamato/UNLP-Informatica/tree/main/SEGUNDO/sem1_2024/FOD/PRACTICA1
 procedure insertarEmpleado(var fich:fichero_emple; e:empleado);
 var
 	emp:empleado;

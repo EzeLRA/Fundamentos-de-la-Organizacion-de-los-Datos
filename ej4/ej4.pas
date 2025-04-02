@@ -56,6 +56,7 @@ var
 	emple:empleado;
 begin
 	reset(fich);
+	//CORREGIR
 	while((not EOF(fich))and(emple.dni <> dni))do
 		read(fich,emple);
 	
@@ -66,12 +67,63 @@ begin
 	end;
 	close(fich);
 end;
+//3
+procedure exportarArchivo(var fich:fichero_emple);
+var
+	emp : empleado;
+	nuevoArch : Text;
+begin
+	assign(nuevoArch,'todos_empleados.txt');
+	rewrite(nuevoArch);
+	reset(fich);
+	while(not EOF(fich))do begin
+		read(fich,emp);
+		WriteLn(nuevoArch,emp.nombre,' ',emp.apellido,' ',emp.num,' ',emp.edad,' ',emp.dni);
+	end;
+	close(fich);
+	close(nuevoArch);
+end;
+//4
+procedure reportarDNIFaltantes(var fich:fichero_emple);
+var
+	emp : empleado;
+	nuevo : Text;
+begin
+	assign(nuevo,'faltaDNIEmpleado.txt');
+	rewrite(nuevo);
+	reset(fich);
+	while(not EOF(fich))do begin
+		read(fich,emp);
+		if(emp.dni = 0)then begin
+			WriteLn(nuevo,emp.nombre,' ',emp.apellido,' ',emp.num,' ',emp.edad,' ',emp.dni);
+		end;
+	end;
+	close(fich);
+	close(nuevo);
+end;
 
 VAR
 	fich : fichero_emple;
 	opcion:integer;
+	dni,edad:integer;
 BEGIN
 	opcion :=0;
-	assign(fich,'emple');
-	cargarEmpleados(fich);
+	
+	//PROBAR EL CODIGO
+	
+	while(opcion = 0)do begin
+		readln(opcion);
+		case opcion of
+			1:begin
+				assign(fich,'emple');
+				cargarEmpleados(fich);
+			end;
+			2:begin
+				readln(dni,edad);
+				modificarEmpleadoEdad(fich,dni,edad);
+			end;
+			3:exportarArchivo(fich);
+			4:reportarDNIFaltantes(fich);
+		end;
+	end;
 END.

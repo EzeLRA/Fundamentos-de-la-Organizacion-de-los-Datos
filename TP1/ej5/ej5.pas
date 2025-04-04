@@ -21,6 +21,9 @@ begin
 	c.stock_dispone := Random(101);
 end;
 //Auxiliar
+{Consideracion: Al escribir la informacion sobre text
+				la informacion string siempre se ubican al final de los datos a escribir
+}
 procedure generarCelularesText;
 var
 	f : Text;
@@ -30,7 +33,7 @@ begin
 	rewrite(f);
 	for i:=0 to 20 do begin
 		generarCelular(c);
-		WriteLn(f,c.cod,' ',c.marca,' ',c.precio);
+		WriteLn(f,c.cod,' ',c.precio:0:2,' ',c.marca);
 		WriteLn(f,c.stock_dispone,' ',c.stock_min,' ',c.descripcion);
 		WriteLn(f,c.nombre);
 	end;
@@ -45,13 +48,14 @@ var
 begin
 	assign(f2,'celulares.txt');
 	reset(f2);
+	
 	readln(nom);
 	assign(f1,nom);
 	rewrite(f1);
 	while(not EOF(f2))do begin
-		ReadLn(f2,cel.cod,cel.marca,cel.precio);
-		ReadLn(f2,cel.stock_dispone,cel.stock_min,cel.descripcion);
-		ReadLn(f2,cel.nombre);
+		readln(f2,cel.cod,cel.precio,cel.marca);
+		readln(f2,cel.stock_dispone,cel.stock_min,cel.descripcion);
+		readln(f2,cel.nombre);
 		write(f1,cel);
 	end;
 	close(f1);
@@ -96,13 +100,29 @@ begin
 	rewrite(f2);
 	while(not EOF(f1))do begin
 		read(f1,cel);
-		WriteLn(f2,cel.cod,' ',cel.marca,' ',cel.precio);
+		WriteLn(f2,cel.cod,' ',cel.precio:0:2,' ',cel.marca);
 		WriteLn(f2,cel.stock_dispone,' ',cel.stock_min,' ',cel.descripcion);
 		WriteLn(f2,cel.nombre);
 	end;
 	close(f1);
 	close(f2);
 end;
+//Auxiliar
+procedure imprimirTxt;
+var
+	txt : Text;
+	cel : celular;
+begin
+	assign(txt,'celulares.txt');
+	reset(txt);
+	while(not EOF(txt))do begin
+		readln(txt,cel.cod,cel.precio,cel.marca);
+		readln(txt,cel.stock_dispone,cel.stock_min,cel.descripcion);
+		readln(txt,cel.nombre);
+		writeln(cel.cod,' ',cel.nombre,' ',cel.descripcion,' ',cel.marca,' ',cel.precio,' ',cel.stock_min,' ',cel.stock_dispone);
+	end;
+end;
+
 VAR
 	opcion : integer;
 	fich : ficheroCelulares;
@@ -115,6 +135,7 @@ BEGIN
 			1:  begin
 				convertirArchivoText(fich);
 				//generarCelularesText();
+				//imprimirTxt();
 				end;
 			2: informarStockMinimo(fich);
 			3: informarCelularDescripcion(fich);

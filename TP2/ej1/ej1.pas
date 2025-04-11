@@ -30,7 +30,9 @@ type
 	end;
 	
 
-//Auxiliar
+{
+*	Modulos auxiliares 
+}
 procedure generarEmpleado(var e:empleado);
 	function RandomString(largo: Integer): String;
 	var
@@ -61,11 +63,13 @@ procedure generarLista(var l:lista);
 				ant:=actual;
 				actual:= actual^.sig;
 			end;
-		end;
-		if (actual = pI) then begin
-			nuevo^.sig:= pI; pI:= nuevo;
-		end else begin
-			ant^.sig:= nuevo; nuevo^.sig:= actual;
+			
+			if (actual = pI) then begin
+				nuevo^.sig:= pI; pI:= nuevo;
+			end else begin
+				ant^.sig:= nuevo; nuevo^.sig:= actual;
+			end;
+			
 		end;
 	End;
 var
@@ -79,15 +83,23 @@ begin
 	end;
 end;
 
+procedure imprimirLista(l:lista);
+begin
+	while(l <> nil)do begin
+		writeln(l^.dat.codigo);
+		l := l^.sig;
+	end;
+end;
 procedure generarArchivoOrdenado(var arc:archivoEmpleados;l:lista);
 begin
 	rewrite(arc);
 	while(l <> nil)do begin
 		write(arc,l^.dat);
+		l := l^.sig;
 	end;
 	close(arc);
 end;
-//Auxiliar
+
 procedure imprimirArchivo(var arc:archivoEmpleados);
 var
 	emp:empleado;
@@ -102,16 +114,43 @@ begin
 	end;
 	close(arc);
 end;
-//...
+
+{
+*	Modulos para la resolucion
+}
+procedure procesarArchivo(var arcDispone:archivoEmpleados; var arcNuevo:archivoEmpleados);
+var
+	e : empleado;
+	eNuevo : empleado; 
+begin
+	reset(arcDispone);
+	rewrite(arcNuevo);
+	
+	while(not EOF(arcDispone))do begin
+		read(arcDispone,e);
+		eNuevo := e; eNuevo.montoComision := 0;
+		while((not EOF(arcDispone))and(eNuevo.codigo = e.codigo)and(eNuevo.nombre = e.nombre))do begin
+			eNuevo.montoComision := eNuevo.montoComision + e.montoComision;
+			read(arcDispone,e);
+		end;
+		write(arcNuevo,eNuevo);
+	end;
+	
+	close(arcDispone);
+	close(arcNuevo);
+end;
 
 VAR
 	l:lista;
 	arc_Dispone : archivoEmpleados;
 	arc_Nuevo : archivoEmpleados;
 BEGIN
-	l:=nil;
-	generarLista(l);
+	//l:=nil;
+	//generarLista(l);
 	assign(arc_Dispone,'empleados');
-	//imprimirArchivo(arc_Dispone);
 	//generarArchivoOrdenado(arc_Dispone,l);
+	//imprimirArchivo(arc_Dispone);
+	assign(arc_Nuevo,'comisionTotalEmpleados');
+	procesarArchivo(arc_Dispone,arc_Nuevo);
+	imprimirArchivo(arc_Nuevo);
 END.

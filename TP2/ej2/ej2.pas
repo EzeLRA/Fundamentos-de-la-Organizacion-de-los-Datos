@@ -1,6 +1,7 @@
 program ej;
+const valorAlto = 101;
 type
-	codigos = 1..100;
+	codigos = 1..101;
 	cad30 = String[30];
 	producto = record
 		codigo : codigos;
@@ -28,30 +29,39 @@ type
 	
 	
 //Modulos auxiliares
-
-procedure generarProductos(var v:vector);
-var
-	i:codigos;
+procedure imprimirProducto(pr:producto);
 begin
-	randomize;
-	for i:= 1 to 10 do begin
-		v[i].codigo := i;
-		readln(v[i].nombreComercial);
-		v[i].precioVenta := (Random(101) + 100) / 2;
-		v[i].stockActual := Random(1001) + 800 ;
-		v[i].stockMinimo := 500 + Random(201);
-	end;
+	writeln(pr.codigo);
+	writeln(pr.nombreComercial);
+	writeln(pr.precioVenta);
+	writeln(pr.stockActual);
+	writeln(pr.stockMinimo);
+	writeln;
 end;
-procedure leerProductos(var v:vector; var P:Maestro);
-var
-	i:integer; pr:producto;
-begin
-	reset(P);
-	for i:= 1 to 10 do begin
-		read(P,pr);
-		v[i] := pr;
+
+procedure generarMaestro(var M:Maestro);
+	procedure generarProductos(var v:vector);
+	var
+		i:codigos;
+	begin
+		randomize;
+		for i:= 1 to 10 do begin
+			v[i].codigo := i;
+			readln(v[i].nombreComercial);
+			v[i].precioVenta := (Random(101) + 100) / 2;
+			v[i].stockActual := Random(1001) + 800 ;
+			v[i].stockMinimo := 500 + Random(201);
+		end;
 	end;
-	close(P);
+var
+	v:vector; i:codigos;
+begin
+	generarProductos(v);
+	rewrite(M);
+	for i:= 1 to 10 do begin
+		write(M,v[i]);
+	end;
+	close(M);
 end;
 procedure generarDetalle(var d:Detalle);
 	procedure insertarOrdenado(var l:lista;v:venta);
@@ -94,29 +104,60 @@ begin
 	end;
 	close(d);
 end;
-
+procedure imprimirArchivo(var P:Maestro);
+var
+	pr:producto;
+begin
+	reset(P);
+	while(not EOF(P))do begin
+		read(P,pr);
+		imprimirProducto(pr);
+	end;
+	close(P);
+end;
+procedure imprimirArchivo2(var d:Detalle);
+var
+	v:venta;
+begin
+	reset(d);
+	while(not EOF(d))do begin
+		read(d,v);
+		writeln(v.codigo);
+		writeln(v.cantVendido);
+		writeln;
+	end;
+	close(d);
+end;
 {
 *	Modulo para la resolucion 
 }
 procedure procesarProductos(var P:Maestro;var d:Detalle);
+	procedure leer (var archivo:Detalle; var dato:venta);
+	begin
+		if (not eof(archivo))then read (archivo,dato)
+		else begin dato.codigo := valorAlto; dato.cantVendido := -1;
+		end;
+	end;
 var
-	v:venta; p:producto; cod:codigos;
-	cant : integer;
+	ve:venta; pr:producto;
 begin
-	rewrite(P);
+	reset(P);
 	reset(d);
 	
-	//Revisar vinculacion de fichero y este algoritmo
-	while(not EOF(d))and(not EOF(P))do begin
-		read(P,p);
-		read(d,v); cant := 0;
-		while((v.codigo = p.codigo)and(not EOF(d)))do begin
-			cant := v.cantVendido + cant;
-			read(d,v);
+	leer(d,ve); {se procesan todos los registros del archivo detalle}
+	while (ve.codigo <> valorAlto) do begin
+		read(P,pr);
+		{ Busca codigos iguales }
+		while (pr.codigo <> ve.codigo) do
+			read (P,pr);
+		{ se procesan códigos iguales }
+		while (pr.codigo = ve.codigo) do begin
+			pr.stockActual := pr.stockActual - ve.cantVendido;
+			leer(d,ve);
 		end;
-		p.stockActual := p.stockActual - cant;
-		seek(P,filePos(P)-1);
-		write(P,p);
+		{reubica el puntero}
+		seek(P, filepos(P)-1);
+		write(P,pr);
 	end;
 	
 	close(d);
@@ -126,9 +167,19 @@ end;
 VAR
 	productos : Maestro;
 	detalleDia1 : Detalle;
-	v:venta;
 BEGIN
+	{ Generacion de archivos desde cero
+	
+	assign(productos,'Productos');
+	assign(detalleDia1,'VentasDia1');
+	generarMaestro(productos);			//Va pedir nombres de hasta 10 marcas
+	generarDetalle(detalleDia1);
+	}
+	{ Modifica un respaldo de 'Productos' con los cambios de 'detalleDia1'
+	
 	assign(productos,'Productos2');
 	assign(detalleDia1,'VentasDia1');
-	
+	procesarProductos(productos,detalleDia1);
+	imprimirArchivo(productos);
+	}	
 END.
